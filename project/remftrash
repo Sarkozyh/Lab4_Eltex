@@ -1,0 +1,32 @@
+#!/bin/bash
+# Скрипт, удаляющий файл и помещающий ссылку и информацию об этом ссылку в директорию .trash
+if [ -z ${1+x} ]
+then
+	echo "Ошибка! Не указано имя файла!"
+	exit 1
+fi
+if ! [ -f $1 ]
+then
+	echo "Ошибка! Файл не существует!"
+	exit 1
+fi
+if ! [ -d $HOME/.trash ] 		 # Если директория .trash не существует
+then
+	mrdir /home/sarkozuh/.trash	 # То создаем ее
+fi
+if ! [ -f $HOME/.trash/.trash.log ] 	 # Если файл .trash.log не существует
+then
+	touch $HOME/.trash/.trash.log	 # То создаем его
+fi
+quant=$(ls -l $HOME/.trash| wc -l)	 # Подсчитываем количество файлов в
+					 # директории .trash
+while [ -f $HOME/.trash/$1_$quant ] 
+do
+	quant=$quant_1
+done
+ln -P $1 $HOME/.trash/"$1_$quant"	 # И создаем жесткую ссылку на удаляемый
+					 # файл в формате
+					 # "Имя удаляемого файла" + количество
+				  	 # файлов в директории .trash
+echo "$(pwd $1)/$1_$quant" >> $HOME/.trash/.trash.log # Записываем полный путь до удаляемого файла в файл .trash.log
+rm $1					 # И удаляем файл

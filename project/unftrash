@@ -1,0 +1,54 @@
+#!/bin/bash
+
+#Программа, восстанавливающая файлы, удаленные с помощью remftrash
+
+# Если не указано название файла, то программа выдает соответствующее сообщение и прокращает работу
+if [ -z ${1+x} ]
+then
+	echo"Ошибка! не указано имя файла!"
+	exit 1
+fi
+currentDir="$(pwd $0)"
+count="0"
+
+# Если искомый файл существует, то ищем запись о нем в .trash.log и получаем его исходный путь
+
+if [ -f $HOME/.trash/.trash.log ]
+then
+	found=($(grep -s $1 $HOME/.trash/.trash.log))
+	number=($(grep -n $1 $HOME/.trash/.trash.log | cut -d: -f1))
+
+#В случае, если файл найден, то спрашиваем, нужно ли восстановить файл
+
+	for i in ${found[@]}
+	do
+		echo $i
+		echo "Восстановить файл? (y/n)"
+		read check
+		if [ $check = y ]
+		then
+			fileName=$(basename $i)
+
+# Если файл уже существует, то выводим сообщение об ошибке и завершаем программу. В противном случае создаем жесткую ссылку на файл и удаляем файл из директории .trash и запиись о нем из .trash.log
+
+			if [ -f $i ]
+			then 
+				echo "Ошибка! Файл уже существует!"
+				exit 1
+			fi
+			ln -P $HOME/.trash/$fileName $currentDir/$fleName
+			rm $HOME/.trash/$fileName
+			sed -i "${number[$count]}~d" $HOME/.trash/.trash.log
+		elif [ $check = n ]
+		then
+			echo no
+		else
+			exit 1
+		fi
+		let count=$count+1
+	done
+else
+	echo "Файл или директория не найдены"
+	echo no
+fi
+

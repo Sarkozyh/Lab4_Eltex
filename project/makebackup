@@ -1,0 +1,94 @@
+#!/bin/bash
+
+# Программа, создающая backup директории listtask
+
+cd $HOME
+
+# Если бекапы не делались, то создаем новую директорию
+
+exists=$(find Backup-*)
+
+if [ ${#exists[@]} -lt "0" ]
+then
+	mkdir Backup-$(date -I)
+fi
+
+shopt -s nullglob
+arr=(~/*)
+date='2000-01-01'
+
+# Поиск самой недавно созданной директории и установка даты на дату этой директории
+
+for ((i=0; i<${#arr[@]}; i++))
+do
+	if [[ ${arr[$i]} == *"Backup-"* ]]
+	then
+		tmp=$(basename ${arr[$i]} | cut -c8-17)
+		if [ $date > $tmp ]
+		then
+			date=$tmp
+		fi
+	fi
+done
+dateInt=$(date -d $date +%s)
+todayInt=$(date -d 'now' +%s)
+raz=$((($todayInt-$dateInt) / 86400))
+
+# Если самый недавний каталог старше 7 дней
+
+bFiles=$(ls $HOME/listtask)
+if [ "$raz" -gt "7" ]
+then
+
+# То создаем новую дирректорию и устанавливаем текущую дату
+
+	date=$(date -I)
+	mkdir Backup-$date
+fi
+
+# Копирование файлов в директорию backup
+
+for i in $bFiles 
+do
+
+# Если копируемого файла нет в директории Backup, то копируем его туда и добавляем запись в backup-report
+
+	if ! [ -f $HOME/Backup-$date/$i ]
+	then
+		echo "Date: $(date -I)  dir: $HOME/Backup-$date  file: $i " >> $HOME/backup-report		
+		cp $HOME/listtask/$i $HOME/Backup-$date/$i
+
+#Если такой файл есть, то сравнивеам его размеры с существующим, и если они различаются, то переиминовываем ставый файл в соответствии с датой, копируем новый файл и вносим в backup-report соответствующую информацию
+
+	elif [ $(stat -c %s $HOME/listtask/$i) != $(stat -c %s $HOME/Backup-$date/$i) ]
+	then
+		ver=0
+		created=0
+		while [ $created = 0 ]
+		do
+		if ! [ -f $HOME/Backup-$date/$i"_"$date"_"$ver ]
+		then
+			mv $HOME/Backup-$date/$i $HOME/Backup-$date/$i"_"$date"_"$ver
+			cp $HOME/listtask/$i $HOME/Backup-$date
+			echo "Date: $(date -I)  dir: $HOME/Backup-$date replace  file: $i old file $i"_"$date"_"$ver" >> $HOME/backup-report		
+			created=1
+		fi
+			ver=$(($ver+1))
+		echo $ver
+	done
+fi
+done
+
+
+
+
+
+
+	#mkdir $HOME/Backup-$(date -I)
+
+#echo $($old-"2021-10-15")
+#d1=$(date -d $old +%s)
+#d2=$(date -d 'Oct 15' +%s)
+#echo $(( ($d1-$d2) / 86400))
+#if [ 
+#	mkdir $HOME/Backup-$date

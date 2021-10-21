@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Программа, востанавливающая listtask по последнему бекапу
+
+cd $HOME
+
+# Если бекапы не делались, то выводим сообщение об ошибки и прерываем выполнение команды
+
+exists=$(find Backup-*)
+
+if [ ${#exists[@]} -lt "0" ]
+then
+	echo Ошибка! Нет бекапов!
+	exit 1
+fi
+
+shopt -s nullglob
+arr=(~/*)
+date='2000-01-01'
+
+# Поиск самой недавно созданной директории и установка даты на дату этой директории
+
+for ((i=0; i<${#arr[@]}; i++))
+do
+	if [[ ${arr[$i]} == *"Backup-"* ]]
+	then
+		tmp=$(basename ${arr[$i]} | cut -c8-17)
+		if [ $date > $tmp ]
+		then
+			date=$tmp
+		fi
+	fi
+done
+
+#echo $date
+
+# Копирование файлов из директории Backup и удаление файлов из нее
+
+bFiles=$(ls $HOME/Backup-$date)
+for i in $bFiles
+do
+
+# Если копируемого файла нет в listtask, то создаем его
+
+if ! [ -f $HOME/listtask/$i ]
+then
+	cp $HOME/Backup-$date/$i $HOME/listtask/$i
+else
+	echo "Файл сущетвует. Заменить существующий файл? (y/n)"
+	read inp
+	if [ $inp = y ]
+	then
+		rm $HOME/listtask/$i
+		cp $HOME/Backup-$date/$i $HOME/listtask/$i
+	fi
+fi
+done

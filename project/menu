@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PS3="Выберите действие: "
+
+select action in remftrash unftrash makebackup restorebackup quit
+do
+	case $action in
+		remftrash)
+			if [ -f remftrash ]
+				then
+				echo "Введите имя файла"
+				read fName
+				./remftrash $fName
+			else
+				echo "Ошибка! Отсутствует файл remftrash!"
+				exit 1
+			fi
+			;;
+		unftrash)
+			if [ -f remftrash ]
+			then
+				echo "Введите имя файла"
+				read fName
+				./unftrash $fName
+			else
+				echo "Ошибка! Отсутствует файл unftrash!"
+				exit 1
+			fi
+			;;
+		makebackup)
+			if [ -f makebackup ]
+			then
+				./makebackup
+			else
+				echo "Ошибка! Отсутствует файл makebackup"
+				exit 1
+			fi
+			;;
+		restorebackup)
+			if [ -f restorebackup ]
+			then
+				./restorebackup
+			else
+				echo "Ошибка! Отсутствует файл restorebackup!"
+				exit 1
+			fi
+			;;
+		quit)
+			break
+			;;
+		*)
+			echo "Ошибка! Неверная команда!"
+			;;
+
+	esac
+done
